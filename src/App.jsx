@@ -11,24 +11,26 @@ import Contact from "./pages/Contact";
 import Menu from "./pages/Menu";
 import Auth from "./pages/Auth";
 import Cart from "./pages/Cart";
-
+import ShakesCarousel from "./components/ShakesCarousel";
+import ShakeDetails from "./components/ShakeDetails";
 
 export default function App() {
   return (
-    <div className="min-h-screen bg-white dark:bg-black transition-colors">
-      <Navbar />
-      <main>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/menu" element={<Menu />} />
-          <Route path="/login" element={<Auth />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/cart" element={<Cart/>} />
-
-        </Routes>
-      </main>
-      <Footer />
-    </div>
+      <div className="min-h-screen bg-white dark:bg-black transition-colors">
+        <Navbar />
+        <main>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/shakes" element={<ShakesCarousel />} />
+            <Route path="/shake/:id" element={<ShakeDetails />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/menu" element={<Menu />} />
+            <Route path="/login" element={<Auth />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/cart" element={<Cart/>} />
+          </Routes>
+        </main>
+        <Footer />
+      </div>
   );
 }

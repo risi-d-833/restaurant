@@ -14,7 +14,7 @@ import {
   updateCartQty,
   removeFromCart,
   clearCartApi,
-} from "../services/cartApi";
+} from "../services/api";
 
 import { FiShoppingBag, FiCreditCard, FiTrash2 } from "react-icons/fi";
 
