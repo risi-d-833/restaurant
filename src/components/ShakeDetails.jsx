@@ -1,11 +1,11 @@
 // src/components/ShakeDetails.jsx
-import React from "react";
+import React, { useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { FiArrowLeft, FiHeart } from "react-icons/fi";
+import { FiArrowLeft, FiHeart, FiPlus, FiMinus } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
 import { toggleWishlist } from "../store/wishlistSlice";
+import { motion } from "framer-motion";
 
-// Reuse the same SHAKES data
 const SHAKES = [
   { id: 1, name: "Mocha Shake", price: 20, img: "https://media.istockphoto.com/id/1308045723/photo/cold-coffee-frappuccino.jpg?s=612x612&w=0&k=20&c=drB225PkXKnjRzym-06I3rQs2dawXXb2mxsdbkj9aK0=", description: "Rich coffee flavor blended with chocolate and cream." },
   { id: 2, name: "Lavender Shake", price: 20, img: "https://www.havocinthekitchen.com/wp-content/uploads/2024/08/Blueberry-Lemon-Lavender-Milkshake-1.jpg", description: "Soothing lavender-infused creamy delight." },
@@ -25,74 +25,137 @@ export default function ShakeDetails() {
   const dispatch = useDispatch();
   const wishlist = useSelector((state) => state.wishlist.items);
   const isWishlisted = wishlist.includes(shake?.id);
+  const [quantity, setQuantity] = useState(1);
 
   if (!shake) {
     return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
-        <p>Shake not found!</p>
-      </div>
+      <motion.div
+        className="min-h-screen bg-black text-white flex items-center justify-center text-2xl"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+      >
+        Shake not found!
+      </motion.div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-black text-white py-12 px-6">
-      <div className="max-w-5xl mx-auto">
-        {/* Back Button */}
-        <Link to="/" className="inline-flex items-center gap-2 text-gray-400 hover:text-white mb-8 transition">
-          <FiArrowLeft className="w-5 h-5" /> Back to Menu
+    <motion.div
+      className="min-h-screen bg-black text-white py-16 px-6 md:px-12"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.6 }}
+    >
+      <div className="max-w-6xl mx-auto">
+        {/* Back Icon Only */}
+        <Link
+          to="/"
+          className="inline-block mb-10 p-3 rounded-full bg-[#111] hover:bg-orange-500/20 transition-all hover:scale-110"
+        >
+          <FiArrowLeft className="w-6 h-6" />
         </Link>
 
-        <div className="grid md:grid-cols-2 gap-12 items-center">
-          {/* Large Image */}
-          <div className="flex justify-center">
-            <div className="w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl group-hover:shadow-orange-500/50 transition-shadow">
-              <img
-                src={shake.img}
-                alt={shake.name}
-                className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-500"
-              />
+        <div className="grid lg:grid-cols-2 gap-16 items-start">
+          {/* Image Section */}
+          <motion.div
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8 }}
+            className="flex justify-center"
+          >
+            <div className="relative group">
+              <div className="w-full max-w-xl rounded-3xl overflow-hidden shadow-2xl ring-8 ring-orange-500/10">
+                <img
+                  src={shake.img}
+                  alt={shake.name}
+                  className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-105"
+                />
+              </div>
+              {/* Subtle glow on hover */}
+              <div className="absolute inset-0 rounded-3xl ring-8 ring-orange-500/0 group-hover:ring-orange-500/30 transition-all duration-500 pointer-events-none" />
             </div>
-          </div>
+          </motion.div>
 
-          {/* Details */}
-          <div className="space-y-8">
+          {/* Details Section */}
+          <motion.div
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8 }}
+            className="space-y-10"
+          >
+            {/* Name & Description */}
             <div>
-              <h1 className="text-5xl font-bold mb-4 group-hover:text-orange-400 transition-colors">{shake.name}</h1>
-              <p className="text-gray-400 text-lg">
+              <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight">
+                {shake.name}
+              </h1>
+              <p className="text-gray-300 text-lg leading-relaxed max-w-lg">
                 {shake.description}
               </p>
             </div>
 
-            <div className="flex items-center gap-6">
+            {/* Price & Wishlist */}
+            <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-500 text-sm">Price</p>
-                <p className="text-4xl font-bold text-orange-400">₹{shake.price}</p>
+                <p className="text-gray-500 text-sm uppercase tracking-wider">Price</p>
+                <p className="text-5xl font-bold text-orange-400 mt-2">₹{shake.price}</p>
               </div>
 
               <button
                 onClick={() => dispatch(toggleWishlist(shake.id))}
-                className="p-4 rounded-full bg-[#111] hover:bg-orange-500/20 transition"
+                className="p-5 rounded-full bg-[#111] hover:bg-orange-500/20 transition-all hover:scale-110"
               >
                 <FiHeart
-                  className={`w-8 h-8 ${isWishlisted ? "fill-red-500 text-red-500" : "text-gray-400"}`}
+                  className={`w-8 h-8 transition-all ${
+                    isWishlisted ? "fill-red-500 text-red-500" : "text-gray-400"
+                  }`}
                 />
               </button>
             </div>
 
-            <div className="pt-8">
-              <button className="w-full md:w-auto px-12 py-5 text-xl font-bold rounded-full bg-orange-500 hover:bg-orange-600 shadow-xl hover:shadow-orange-500/50 transition-all hover:scale-105">
+            {/* Quantity Selector */}
+            <div className="flex items-center gap-6">
+              <p className="text-gray-400 text-lg">Quantity</p>
+              <div className="flex items-center gap-4 bg-[#111] rounded-full px-6 py-3">
+                <button
+                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  className="p-2 hover:bg-white/10 rounded-full transition"
+                >
+                  <FiMinus className="w-5 h-5" />
+                </button>
+                <span className="text-xl font-semibold w-12 text-center">{quantity}</span>
+                <button
+                  onClick={() => setQuantity(quantity + 1)}
+                  className="p-2 hover:bg-white/10 rounded-full transition"
+                >
+                  <FiPlus className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Add to Cart Button */}
+            <div>
+              <button className="w-full py-6 text-2xl font-bold rounded-full bg-orange-500 hover:bg-orange-600 shadow-2xl hover:shadow-orange-500/50 transition-all hover:scale-105 active:scale-100">
                 ADD TO CART
               </button>
             </div>
 
-            <div className="text-sm text-gray-500 space-y-2">
-              <p>• Made with real fruit & premium milk</p>
-              <p>• No artificial flavors</p>
-              <p>• Served chilled with whipped cream</p>
+            {/* Features */}
+            <div className="pt-8 border-t border-gray-800">
+              <ul className="space-y-3 text-gray-400 text-sm">
+                <li className="flex items-center gap-3">
+                  <span className="text-orange-400">✓</span> Made with real fruit & premium milk
+                </li>
+                <li className="flex items-center gap-3">
+                  <span className="text-orange-400">✓</span> No artificial flavors
+                </li>
+                <li className="flex items-center gap-3">
+                  <span className="text-orange-400">✓</span> Served chilled with whipped cream
+                </li>
+              </ul>
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
