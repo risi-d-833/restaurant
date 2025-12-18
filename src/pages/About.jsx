@@ -1,171 +1,96 @@
-import React, { useState } from "react";
-import { FiPhone, FiMail, FiMapPin } from "react-icons/fi";
-import { sendContactMessage } from "../services/contactApi";
+import React from "react";
+import { FiStar, FiUsers, FiHeart, FiCoffee } from "react-icons/fi";
 
-export default function Contact() {
-  const [form, setForm] = useState({
-    name: "",
-    email: "",
-    message: "",
-  });
-
-  const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState("");
-  const [error, setError] = useState("");
-
-  const handleChange = (key) => (e) => {
-    setForm({ ...form, [key]: e.target.value });
-    setError("");
-    setSuccess("");
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (!form.name || !form.email || !form.message) {
-      setError("All fields are required");
-      return;
-    }
-
-    try {
-      setLoading(true);
-
-      await sendContactMessage(form);
-
-      setSuccess("Message sent successfully ✔");
-      setForm({ name: "", email: "", message: "" });
-    } catch (err) {
-      setError(err.message || "Failed to send message");
-    } finally {
-      setLoading(false);
-    }
-  };
-
+export default function About() {
   return (
-    <section className="min-h-screen px-6 py-16 bg-gradient-to-br from-black via-[#1a1208] to-[#3b240f] text-gray-100 overflow-hidden">
+    <section className="min-h-screen bg-gradient-to-br from-black via-[#1a1208] to-[#3b240f] text-gray-100 px-6 py-20 overflow-hidden">
 
-      {/* Title */}
-      <div className="text-center animate-fadeUp">
+      {/* Heading */}
+      <div className="text-center max-w-3xl mx-auto animate-fadeUp">
         <h1 className="text-3xl md:text-4xl font-semibold text-white">
-          Contact Us
+          About <span className="text-orange-400">Village CHEF</span>
         </h1>
-        <p className="text-gray-400 mt-2 max-w-xl mx-auto">
-          Reach out for reservations, feedback, or any inquiries — we’re always happy to help.
+        <p className="mt-4 text-gray-400 leading-relaxed">
+          Where authentic village flavors meet modern dining experiences.
         </p>
       </div>
 
       {/* Content */}
-      <div className="grid md:grid-cols-2 gap-12 mt-16 max-w-6xl mx-auto">
+      <div className="grid md:grid-cols-2 gap-14 mt-20 max-w-6xl mx-auto items-center">
 
-        {/* LEFT INFO */}
-        <div className="space-y-8 animate-fadeUp">
-          <Info icon={<FiPhone />} title="Phone" value="+91 98765 43210" />
-          <Info icon={<FiMail />} title="Email" value="info@villagechef.com" />
-          <Info
-            icon={<FiMapPin />}
-            title="Address"
-            value="MG Road, Indore, Madhya Pradesh"
-          />
+        {/* Left Text */}
+        <div className="space-y-6 animate-fadeUp">
+          <h2 className="text-2xl font-semibold text-white">
+            Our Story
+          </h2>
+          <p className="text-gray-400 leading-relaxed">
+            Village CHEF was born from a passion for traditional Indian cooking.
+            We believe food should not only satisfy hunger but also tell a story.
+            Every dish we serve is inspired by village kitchens, slow cooking,
+            and hand-picked spices.
+          </p>
 
-          <p className="pt-4 text-gray-400 leading-relaxed max-w-md">
-            We’re open daily from{" "}
-            <span className="text-orange-400">10 AM – 11 PM</span>.
-            Visit us or send a message anytime.
+          <p className="text-gray-400 leading-relaxed">
+            From family dinners to celebrations, our mission is to bring people
+            together through honest food and warm hospitality.
           </p>
         </div>
 
-        {/* FORM */}
-        <form
-          onSubmit={handleSubmit}
-          className="bg-black/60 backdrop-blur-md p-8 rounded-2xl border border-white/10 shadow-2xl animate-fadeUp"
-        >
-          <Input
-            label="Your Name"
-            value={form.name}
-            onChange={handleChange("name")}
-            placeholder="Enter your name"
-          />
+        {/* Right Cards */}
+        <div className="grid grid-cols-2 gap-6 animate-fadeUp">
 
-          <Input
-            label="Your Email"
-            value={form.email}
-            onChange={handleChange("email")}
-            placeholder="Enter your email"
-            type="email"
-          />
-
-          <div className="mt-6">
-            <label className="text-sm text-gray-400">Message</label>
-            <textarea
-              rows="4"
-              value={form.message}
-              onChange={handleChange("message")}
-              placeholder="Write your message..."
-              className="w-full mt-2 px-4 py-3 bg-black border border-white/15 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-orange-500 outline-none transition resize-none"
-            />
+          <div className="bg-black/60 border border-white/10 rounded-2xl p-6 hover:-translate-y-2 transition-all">
+            <FiStar className="text-orange-400 text-2xl mb-3" />
+            <h3 className="text-white font-semibold">Premium Taste</h3>
+            <p className="text-sm text-gray-400 mt-2">
+              Authentic recipes passed through generations.
+            </p>
           </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="mt-8 w-full py-3 rounded-full bg-orange-500 text-black font-semibold hover:bg-orange-600 hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
-          >
-            {loading ? "Sending..." : "Send Message"}
-          </button>
+          <div className="bg-black/60 border border-white/10 rounded-2xl p-6 hover:-translate-y-2 transition-all">
+            <FiUsers className="text-orange-400 text-2xl mb-3" />
+            <h3 className="text-white font-semibold">Family Friendly</h3>
+            <p className="text-sm text-gray-400 mt-2">
+              A warm place for friends & families.
+            </p>
+          </div>
 
-          {success && (
-            <p className="mt-4 text-emerald-400 text-sm">{success}</p>
-          )}
+          <div className="bg-black/60 border border-white/10 rounded-2xl p-6 hover:-translate-y-2 transition-all">
+            <FiHeart className="text-orange-400 text-2xl mb-3" />
+            <h3 className="text-white font-semibold">Made with Love</h3>
+            <p className="text-sm text-gray-400 mt-2">
+              Every dish prepared with care & passion.
+            </p>
+          </div>
 
-          {error && (
-            <p className="mt-4 text-red-400 text-sm">{error}</p>
-          )}
-        </form>
+          <div className="bg-black/60 border border-white/10 rounded-2xl p-6 hover:-translate-y-2 transition-all">
+            <FiCoffee className="text-orange-400 text-2xl mb-3" />
+            <h3 className="text-white font-semibold">Fresh Ingredients</h3>
+            <p className="text-sm text-gray-400 mt-2">
+              Locally sourced, always fresh.
+            </p>
+          </div>
+
+        </div>
       </div>
 
-      {/* Animations */}
+      {/* Animation */}
       <style>{`
         @keyframes fadeUp {
-          0% { opacity: 0; transform: translateY(24px); }
-          100% { opacity: 1; transform: translateY(0); }
+          from {
+            opacity: 0;
+            transform: translateY(30px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
         }
         .animate-fadeUp {
           animation: fadeUp 0.9s ease-out forwards;
         }
       `}</style>
+
     </section>
-  );
-}
-
-/* =========================
-   REUSABLE COMPONENTS
-========================= */
-
-function Info({ icon, title, value }) {
-  return (
-    <div className="flex items-start gap-4">
-      <div className="p-3 rounded-full bg-orange-500/10 text-orange-400">
-        {icon}
-      </div>
-      <div>
-        <p className="text-sm text-gray-400">{title}</p>
-        <p className="text-gray-200 font-medium">{value}</p>
-      </div>
-    </div>
-  );
-}
-
-function Input({ label, value, onChange, placeholder, type = "text" }) {
-  return (
-    <div className="mt-6">
-      <label className="text-sm text-gray-400">{label}</label>
-      <input
-        type={type}
-        value={value}
-        onChange={onChange}
-        placeholder={placeholder}
-        className="w-full mt-2 px-4 py-3 bg-black border border-white/15 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-orange-500 outline-none transition"
-      />
-    </div>
   );
 }
