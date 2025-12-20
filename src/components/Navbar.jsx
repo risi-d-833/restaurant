@@ -38,6 +38,7 @@ export default function Navbar() {
     { label: "Home", to: "/" },
     { label: "About Us", to: "/about" },
     { label: "Menu", to: "/menu" },
+    // { label: "Admin", to: "/admin" },
     { label: "Contact", to: "/contact" },
   ];
 

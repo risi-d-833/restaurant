@@ -1,3 +1,4 @@
+// src/pages/Auth.jsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -26,6 +27,7 @@ export default function Auth() {
     email: "",
     password: "",
     confirm: "",
+    adminSecret: "",
   });
 
   const validate = () => {
@@ -68,15 +70,26 @@ export default function Auth() {
           name: form.name,
           email: form.email,
           password: form.password,
+          adminSecret: form.adminSecret || undefined,
         });
       }
 
+      // Store token & user
       localStorage.setItem("token", res.token);
-      setSuccess(mode === "login" ? "Login successful" : "Account created");
+      localStorage.setItem("user", JSON.stringify(res.user));
 
-      setTimeout(() => navigate("/"), 800);
+      setSuccess(mode === "login" ? "Login successful!" : "Account created!");
+
+      setTimeout(() => {
+        if (res.user.role === "admin") {
+          navigate("/admin");
+        } else {
+          navigate("/");
+        }
+      }, 1000);
+
     } catch (err) {
-      setErrors({ api: err.message || "Something went wrong" });
+      setErrors({ api: err.message });
     } finally {
       setLoading(false);
     }
@@ -89,9 +102,19 @@ export default function Auth() {
         email: "demo@gmail.com",
         name: "Google User",
       });
+
       localStorage.setItem("token", res.token);
-      setSuccess("Signed in with Google");
-      setTimeout(() => navigate("/"), 700);
+      localStorage.setItem("user", JSON.stringify(res.user));
+
+      setSuccess("Signed in with Google!");
+
+      setTimeout(() => {
+        if (res.user.role === "admin") {
+          navigate("/admin");
+        } else {
+          navigate("/");
+        }
+      }, 1000);
     } catch (err) {
       setErrors({ api: err.message });
     } finally {
@@ -103,7 +126,7 @@ export default function Auth() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-black via-[#1a1208] to-[#3b240f] px-4">
       <div className="w-full max-w-4xl grid md:grid-cols-2 rounded-3xl overflow-hidden shadow-2xl border border-white/10">
 
-        {/* LEFT */}
+        {/* LEFT PANEL */}
         <div className="hidden md:flex flex-col justify-between p-10 bg-gradient-to-b from-[#140b05] to-black">
           <h1 className="text-3xl font-bold text-orange-400">Village CHEF</h1>
           <p className="text-gray-400">
@@ -114,7 +137,7 @@ export default function Auth() {
           <p className="text-xs text-gray-500">© 2025 Village CHEF</p>
         </div>
 
-        {/* RIGHT */}
+        {/* RIGHT PANEL */}
         <div className="bg-[#0c0805] p-8 text-white">
           <div className="flex justify-between mb-6">
             <h2 className="text-2xl font-semibold">
@@ -153,9 +176,7 @@ export default function Auth() {
                 <input
                   className="input"
                   value={form.name}
-                  onChange={(e) =>
-                    setForm({ ...form, name: e.target.value })
-                  }
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
                 />
                 {errors.name && <p className="error">{errors.name}</p>}
               </div>
@@ -169,9 +190,7 @@ export default function Auth() {
                 className="input"
                 type="email"
                 value={form.email}
-                onChange={(e) =>
-                  setForm({ ...form, email: e.target.value })
-                }
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
               />
               {errors.email && <p className="error">{errors.email}</p>}
             </div>
@@ -184,9 +203,7 @@ export default function Auth() {
                 className="input pr-10"
                 type={showPassword ? "text" : "password"}
                 value={form.password}
-                onChange={(e) =>
-                  setForm({ ...form, password: e.target.value })
-                }
+                onChange={(e) => setForm({ ...form, password: e.target.value })}
               />
               <button
                 type="button"
@@ -195,39 +212,44 @@ export default function Auth() {
               >
                 {showPassword ? <FiEyeOff /> : <FiEye />}
               </button>
-              {errors.password && (
-                <p className="error">{errors.password}</p>
-              )}
+              {errors.password && <p className="error">{errors.password}</p>}
             </div>
 
             {mode === "signup" && (
-              <div>
-                <label className="text-sm text-gray-400">
-                  Confirm Password
-                </label>
-                <input
-                  className="input"
-                  type="password"
-                  value={form.confirm}
-                  onChange={(e) =>
-                    setForm({ ...form, confirm: e.target.value })
-                  }
-                />
-                {errors.confirm && (
-                  <p className="error">{errors.confirm}</p>
-                )}
-              </div>
+              <>
+                <div>
+                  <label className="text-sm text-gray-400">
+                    Confirm Password
+                  </label>
+                  <input
+                    className="input"
+                    type="password"
+                    value={form.confirm}
+                    onChange={(e) => setForm({ ...form, confirm: e.target.value })}
+                  />
+                  {errors.confirm && <p className="error">{errors.confirm}</p>}
+                </div>
+
+                <div>
+                  <label className="text-xs text-gray-500">
+                    Admin Secret (optional)
+                  </label>
+                  <input
+                    className="input"
+                    type="password"
+                    placeholder="Only for admins"
+                    value={form.adminSecret}
+                    onChange={(e) => setForm({ ...form, adminSecret: e.target.value })}
+                  />
+                </div>
+              </>
             )}
 
             <button
               disabled={loading}
               className="w-full py-3 rounded-full bg-orange-500 text-black font-semibold hover:bg-orange-600"
             >
-              {loading
-                ? "Please wait..."
-                : mode === "login"
-                ? "Login"
-                : "Create Account"}
+              {loading ? "Please wait..." : mode === "login" ? "Login" : "Create Account"}
             </button>
 
             <div className="flex items-center gap-3 my-4">
@@ -259,7 +281,7 @@ export default function Auth() {
         </div>
       </div>
 
-      <style>{`
+      <style jsx>{`
         .input {
           width: 100%;
           padding: 12px;
@@ -270,7 +292,7 @@ export default function Auth() {
           margin-top: 6px;
         }
         .input:focus { border-color: #f97316; outline: none; }
-        .error { color: #f87171; font-size: 12px; }
+        .error { color: #f87171; font-size: 12px; margin-top: 4px; }
         .success {
           margin-top: 16px;
           padding: 10px;

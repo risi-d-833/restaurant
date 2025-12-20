@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import heroImg from "../assets/hero.jpg"; // replace with your image
 import { FiX } from "react-icons/fi";
 import ReservationForm from "./ReservationForm";
@@ -6,6 +7,7 @@ import ReservationForm from "./ReservationForm";
 export default function Hero() {
   const [open, setOpen] = useState(false);
   const modalRef = useRef(null);
+  const navigate = useNavigate();
 
   // close on Escape
   useEffect(() => {
@@ -45,7 +47,7 @@ export default function Hero() {
           </p>
 
           <div className="mt-8 flex justify-center gap-4">
-            <button className="px-6 py-3 bg-orange-500 text-white rounded-full hover:bg-orange-600 transition">
+            <button onClick={() => navigate("/menu")} className="px-6 py-3 bg-orange-500 text-white rounded-full hover:bg-orange-600 transition">
               View Menu
             </button>
 

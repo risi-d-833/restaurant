@@ -1,3 +1,4 @@
+// src/pages/Cart.jsx
 import React, { useMemo, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import CartItem from "../components/CartItem";
@@ -26,13 +27,10 @@ export default function Cart() {
   const items = useSelector((s) => s.cart.items);
   const dispatch = useDispatch();
 
-  /* =========================
-     LOAD CART FROM BACKEND
-  ========================= */
   useEffect(() => {
     const loadCart = async () => {
       try {
-        const res = await fetchCart(); // { items: [] }
+        const res = await fetchCart();
         dispatch(setCart(res.items || []));
       } catch (err) {
         console.error("Failed to load cart", err);
@@ -41,9 +39,6 @@ export default function Cart() {
     loadCart();
   }, [dispatch]);
 
-  /* =========================
-     TOTALS
-  ========================= */
   const subtotal = useMemo(
     () => items.reduce((acc, it) => acc + it.price * it.qty, 0),
     [items]
@@ -53,9 +48,6 @@ export default function Cart() {
   const delivery = items.length ? 30 : 0;
   const total = subtotal + tax + delivery;
 
-  /* =========================
-     ACTION HANDLERS
-  ========================= */
   const increaseQty = async (item) => {
     const qty = item.qty + 1;
     dispatch(updateQty({ id: item.id, qty }));
@@ -78,14 +70,11 @@ export default function Cart() {
     await clearCartApi();
   };
 
-  /* =========================
-     UI (UNCHANGED)
-  ========================= */
   return (
-    <div className="min-h-screen bg-black text-white py-12 px-6">
+    <section className="min-h-screen bg-gradient-to-br from-black via-[#1a1208] to-[#3b240f] text-gray-100 px-6 py-20 overflow-hidden">
       <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-        {/* LEFT */}
+        {/* LEFT - Cart Items */}
         <div className="lg:col-span-2 space-y-6">
           <div className="flex items-center gap-3">
             <FiShoppingBag className="w-6 h-6 text-orange-400" />
@@ -93,7 +82,7 @@ export default function Cart() {
           </div>
 
           {items.length === 0 ? (
-            <div className="p-8 rounded-2xl bg-white/3 text-center">
+            <div className="p-8 rounded-2xl bg-white/5 text-center border border-white/10">
               <p className="text-gray-300">Your cart is empty.</p>
               <p className="mt-3 text-sm text-gray-400">
                 Browse the menu and add items to get started.
@@ -127,8 +116,8 @@ export default function Cart() {
           </div>
         </div>
 
-        {/* RIGHT */}
-        <aside className="rounded-2xl p-6 bg-white/4 backdrop-blur-sm">
+        {/* RIGHT - Order Summary */}
+        <aside className="rounded-2xl p-6 bg-white/5 backdrop-blur-sm border border-white/10">
           <h3 className="text-lg font-semibold">Order Summary</h3>
 
           <div className="mt-4 space-y-3">
@@ -175,6 +164,6 @@ export default function Cart() {
           border-radius: 999px;
         }
       `}</style>
-    </div>
+    </section>
   );
 }
