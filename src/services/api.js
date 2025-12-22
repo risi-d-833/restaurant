@@ -80,6 +80,15 @@ export const clearCartApi = () =>
   API.delete("/cart");
 
 /* =========================
+   SETTINGS APIs
+========================= */
+export const fetchSettings = () =>
+  API.get("/settings");
+
+export const saveSettings = (data) =>
+  API.post("/settings", data);
+
+/* =========================
    EXPORT DEFAULT INSTANCE
 ========================= */
 export default API;
