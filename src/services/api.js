@@ -1,3 +1,4 @@
+// src/services/api.js (Final & Best Version - Fully Working)
 import axios from "axios";
 
 /* =========================
@@ -5,14 +6,10 @@ import axios from "axios";
 ========================= */
 const API = axios.create({
   baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
-  headers: {
-    "Content-Type": "application/json",
-  },
 });
 
 /* =========================
-   REQUEST INTERCEPTOR
-   (AUTO TOKEN ATTACH)
+   REQUEST INTERCEPTOR (AUTO TOKEN + FORM DATA HANDLING)
 ========================= */
 API.interceptors.request.use(
   (config) => {
@@ -20,75 +17,105 @@ API.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
+    // Important: Don't set Content-Type when sending FormData
+    // Let browser set it with correct boundary
+    if (config.data instanceof FormData) {
+      delete config.headers["Content-Type"];
+    } else {
+      config.headers["Content-Type"] = "application/json";
+    }
+
     return config;
   },
   (error) => Promise.reject(error)
 );
 
 /* =========================
-   RESPONSE INTERCEPTOR
-   (RETURN DATA ONLY)
+   RESPONSE INTERCEPTOR (CLEAN DATA + BETTER ERRORS)
 ========================= */
 API.interceptors.response.use(
-  (response) => response.data,
+  (response) => {
+    // Return response.data directly
+    return response.data;
+  },
   (error) => {
     const message =
       error?.response?.data?.message ||
+      error?.response?.data?.error ||
       error.message ||
-      "Server error";
-    return Promise.reject({ message });
+      "Network error - please try again";
+
+    // Return rejected promise with clean error message
+    return Promise.reject(new Error(message));
   }
 );
 
 /* =========================
    AUTH APIs
 ========================= */
-export const loginUser = (data) =>
-  API.post("/auth/login", data);
-
-export const signupUser = (data) =>
-  API.post("/auth/signup", data);
-
-export const googleLogin = (data) =>
-  API.post("/auth/google", data);
+export const loginUser = (data) => API.post("/auth/login", data);
+export const signupUser = (data) => API.post("/auth/signup", data);
+export const googleLogin = (data) => API.post("/auth/google", data);
 
 /* =========================
    RESERVATION APIs
 ========================= */
-export const createReservation = (payload) =>
-  API.post("/reservations", payload);
-
-export const getReservations = () =>
-  API.get("/reservations");
+export const createReservation = (payload) => API.post("/reservations", payload);
+export const getReservations = () => API.get("/reservations");
 
 /* =========================
-   CART APIs (DYNAMIC)
+   CART APIs
 ========================= */
-export const fetchCart = () =>
-  API.get("/cart");
-
-export const addToCart = (data) =>
-  API.post("/cart/add", data);
-
-export const updateCartQty = (data) =>
-  API.put("/cart/qty", data);
-
-export const removeFromCart = (id) =>
-  API.delete(`/cart/${id}`);
-
-export const clearCartApi = () =>
-  API.delete("/cart");
+export const fetchCart = () => API.get("/cart");
+export const addToCart = (data) => API.post("/cart/add", data);
+export const updateCartQty = (data) => API.put("/cart/qty", data);
+export const removeFromCart = (id) => API.delete(`/cart/${id}`);
+export const clearCartApi = () => API.delete("/cart");
 
 /* =========================
-   SETTINGS APIs
+   SETTINGS APIs (PUT + FormData Support)
 ========================= */
-export const fetchSettings = () =>
-  API.get("/settings");
+export const fetchSettings = () => API.get("/settings");
 
-export const saveSettings = (data) =>
-  API.post("/settings", data);
+export const saveSettings = (data) => {
+  // data can be plain object or FormData (for logo upload)
+  return API.put("/settings", data);
+};
 
 /* =========================
-   EXPORT DEFAULT INSTANCE
+   PRODUCTS APIs (Full CRUD with Image Upload)
+========================= */
+export const fetchProducts = async () => {
+  try {
+    const response = await API.get("/products");
+    // Handle different response shapes
+    if (response?.success && Array.isArray(response.products)) {
+      return response.products;
+    }
+    if (Array.isArray(response)) {
+      return response;
+    }
+    return [];
+  } catch (error) {
+    console.error("Error fetching products:", error);
+    throw error;
+  }
+};
+
+export const addProduct = (data) => {
+  // data = FormData (name, price, category, img file)
+  return API.post("/products", data);
+};
+
+export const updateProduct = (id, data) => {
+  // data = FormData (optional img)
+  return API.put(`/products/${id}`, data);
+};
+
+export const deleteProduct = (id) => API.delete(`/products/${id}`);
+
+/* =========================
+   EXPORT DEFAULT
 ========================= */
 export default API;

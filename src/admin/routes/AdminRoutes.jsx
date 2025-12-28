@@ -1,20 +1,53 @@
-import { Routes, Route } from "react-router-dom";
+// src/admin/routes/AdminRoutes.jsx (Fixed & Working)
+import React from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
+
 import AdminLayout from "../components/AdminLayout";
-import Dashboard from "../pages/Dashboard";
-import Orders from "../pages/Orders";
+
+// Admin Pages
 import Products from "../pages/Products";
-import Users from "../pages/Users";
+import Orders from "../pages/Orders";
 import Settings from "../pages/Settings";
+import Users from "../pages/Users";
+
+// Fixed: Import Dashboard properly (assuming your page file is named Overview.jsx)
+import Dashboard from "../pages/Dashboard"; // ← Yeh sahi import hai
+
+// Protected Route for Admin
+const ProtectedAdmin = ({ children }) => {
+  const token = localStorage.getItem("token");
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+
+  if (!token || user.role !== "admin") {
+    return <Navigate to="/login" replace />;
+  }
+
+  return children;
+};
 
 export default function AdminRoutes() {
   return (
     <Routes>
-      <Route path="/admin" element={<AdminLayout />}>
+      <Route
+        path="/"
+        element={
+          <ProtectedAdmin>
+            <AdminLayout />
+          </ProtectedAdmin>
+        }
+      >
+        {/* Default page jab /admin pe jaye */}
         <Route index element={<Dashboard />} />
-        <Route path="orders" element={<Orders />} />
+
+        {/* Baki pages */}
+        <Route path="dashboard" element={<Dashboard />} />
         <Route path="products" element={<Products />} />
-        <Route path="users" element={<Users />} />
+        <Route path="orders" element={<Orders />} />
         <Route path="settings" element={<Settings />} />
+        <Route path="users" element={<Users />} />
+
+        {/* Galat admin path pe dashboard pe bhej do */}
+        <Route path="*" element={<Dashboard />} />
       </Route>
     </Routes>
   );
