@@ -1,8 +1,22 @@
-// src/components/admin/Products.jsx (Full Final Best Version)
+// src/components/admin/Products.jsx (Fully Modern & Beautiful - Improved UI + Best Code)
 import React, { useState, useEffect } from "react";
-import { FiEdit, FiTrash2, FiPlus, FiSearch, FiX, FiSave, FiImage } from "react-icons/fi";
+import {
+  FiEdit,
+  FiTrash2,
+  FiPlus,
+  FiSearch,
+  FiX,
+  FiSave,
+  FiImage,
+  FiAlertCircle,
+} from "react-icons/fi";
 import { motion } from "framer-motion";
-import { fetchProducts, addProduct, updateProduct, deleteProduct } from "../../services/api";
+import {
+  fetchProducts,
+  addProduct,
+  updateProduct,
+  deleteProduct,
+} from "../../services/api";
 
 export default function Products() {
   const [products, setProducts] = useState([]);
@@ -11,9 +25,16 @@ export default function Products() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editProduct, setEditProduct] = useState(null);
   const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState({ text: "", type: "" }); // success or error
 
-  const [form, setForm] = useState({ name: "", price: "", category: "", img: null });
+  const [form, setForm] = useState({
+    name: "",
+    price: "",
+    category: "",
+    img: null,
+    imgUrl: "",
+  });
+
   const [preview, setPreview] = useState(null);
 
   useEffect(() => {
@@ -26,7 +47,7 @@ export default function Products() {
       const data = await fetchProducts();
       setProducts(data);
     } catch (err) {
-      setMessage("Failed to load products. Please try again.");
+      setMessage({ text: "Failed to load products", type: "error" });
     } finally {
       setLoading(false);
     }
@@ -36,24 +57,11 @@ export default function Products() {
     p.name.toLowerCase().includes(search.toLowerCase())
   );
 
-  const handleFormChange = (e) => {
-    const { name, value } = e.target;
-    setForm({ ...form, [name]: value });
-  };
-
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setForm({ ...form, img: file });
-      setPreview(URL.createObjectURL(file));
-    }
-  };
-
   const openAddModal = () => {
     setEditProduct(null);
-    setForm({ name: "", price: "", category: "", img: null });
+    setForm({ name: "", price: "", category: "", img: null, imgUrl: "" });
     setPreview(null);
-    setMessage("");
+    setMessage({ text: "", type: "" });
     setModalOpen(true);
   };
 
@@ -64,26 +72,32 @@ export default function Products() {
       price: product.price,
       category: product.category,
       img: null,
+      imgUrl: product.img,
     });
     setPreview(product.img);
-    setMessage("");
+    setMessage({ text: "", type: "" });
     setModalOpen(true);
   };
 
   const handleSubmit = async () => {
-    // Validation
-    if (!form.name.trim() || !form.price || !form.category.trim() || (!editProduct && !form.img)) {
-      setMessage("Please fill all fields and select an image for new products");
+    if (!form.name.trim() || !form.price || !form.category.trim()) {
+      setMessage({ text: "Name, price, and category are required", type: "error" });
+      return;
+    }
+
+    if (!editProduct && !form.img && !form.imgUrl.trim()) {
+      setMessage({ text: "Please provide an image (upload or URL)", type: "error" });
       return;
     }
 
     setSaving(true);
-    setMessage("");
+    setMessage({ text: "", type: "" });
 
     const data = new FormData();
     data.append("name", form.name.trim());
     data.append("price", form.price);
     data.append("category", form.category.trim());
+    if (form.imgUrl.trim()) data.append("imgUrl", form.imgUrl.trim());
     if (form.img) data.append("img", form.img);
 
     try {
@@ -96,84 +110,90 @@ export default function Products() {
         setProducts([result, ...products]);
       }
       setModalOpen(false);
-      setMessage("Product saved successfully!");
+      setMessage({ text: "Product saved successfully!", type: "success" });
     } catch (err) {
-      setMessage(err.message || "Failed to save product");
+      setMessage({ text: err.message || "Failed to save product", type: "error" });
     } finally {
       setSaving(false);
     }
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this product permanently?")) return;
+    if (!window.confirm("Are you sure you want to delete this product?")) return;
 
     try {
       await deleteProduct(id);
       setProducts(products.filter((p) => p._id !== id));
-      setMessage("Product deleted successfully");
+      setMessage({ text: "Product deleted", type: "success" });
     } catch (err) {
-      setMessage("Failed to delete product");
+      setMessage({ text: "Failed to delete", type: "error" });
     }
   };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <p className="text-2xl text-gray-400">Loading menu items...</p>
+        <p className="text-2xl text-gray-400">Loading products...</p>
       </div>
     );
   }
 
   return (
-    <motion.div className="space-y-12 pb-20">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="space-y-10 pb-10"
+    >
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-8">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
         <div>
-          <h2 className="text-5xl font-bold text-white leading-tight">Menu Items</h2>
-          <p className="text-gray-400 mt-3 text-lg">Add, edit, and manage all your cafe's delicious offerings</p>
+          <h2 className="text-5xl font-bold text-white">Menu Items</h2>
+          <p className="text-gray-400 mt-3 text-lg">
+            Add, edit, and manage your cafe's delicious menu
+          </p>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="relative">
-            <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-            <input
-              type="text"
-              placeholder="Search items..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-12 pr-6 py-3.5 bg-[#111]/80 border border-gray-800 rounded-full focus:border-orange-500 outline-none transition w-full min-w-64"
-            />
-          </div>
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={openAddModal}
+          className="flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-orange-500 to-pink-500 text-black font-bold rounded-full shadow-2xl hover:shadow-orange-500/60 transition"
+        >
+          <FiPlus className="w-6 h-6" />
+          Add New Item
+        </motion.button>
+      </div>
 
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={openAddModal}
-            className="flex items-center justify-center gap-3 px-8 py-3.5 bg-gradient-to-r from-orange-500 to-pink-500 text-black font-bold rounded-full shadow-xl hover:shadow-orange-500/50 transition"
-          >
-            <FiPlus className="w-6 h-6" />
-            Add New Item
-          </motion.button>
-        </div>
+      {/* Search */}
+      <div className="relative max-w-md">
+        <FiSearch className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+        <input
+          type="text"
+          placeholder="Search menu items..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full pl-14 pr-6 py-4 bg-black/50 border border-gray-700 rounded-2xl focus:border-orange-500 focus:ring-4 focus:ring-orange-500/20 outline-none text-white transition"
+        />
       </div>
 
       {/* Message */}
-      {message && (
+      {message.text && (
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className={`p-5 rounded-2xl text-center font-medium text-lg shadow-lg ${
-            message.includes("successfully")
+          className={`p-5 rounded-2xl text-center font-medium text-lg shadow-lg flex items-center justify-center gap-3 ${
+            message.type === "success"
               ? "bg-green-900/60 text-green-300 border border-green-800"
               : "bg-red-900/60 text-red-300 border border-red-800"
           }`}
         >
-          {message}
+          <FiAlertCircle className="w-6 h-6" />
+          {message.text}
         </motion.div>
       )}
 
       {/* Products Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
         {filteredProducts.map((product, index) => (
           <motion.div
             key={product._id}
@@ -181,7 +201,7 @@ export default function Products() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
             whileHover={{ y: -12, scale: 1.03 }}
-            className="group bg-gradient-to-br from-[#111] to-[#1a1a1a] rounded-3xl overflow-hidden shadow-2xl hover:shadow-orange-500/40 border border-gray-800 transition-all duration-500"
+            className="group bg-gradient-to-br from-[#111]/90 to-[#1a1a1a]/90 backdrop-blur-md rounded-3xl overflow-hidden shadow-2xl hover:shadow-orange-500/40 border border-gray-800 transition-all duration-500"
           >
             <div className="h-56 overflow-hidden">
               <img
@@ -231,25 +251,24 @@ export default function Products() {
           <div className="mb-10">
             <FiImage className="w-32 h-32 mx-auto text-gray-600 opacity-40" />
           </div>
-          <p className="text-3xl text-gray-400 mb-8">Your menu is empty</p>
+          <p className="text-3xl text-gray-400 mb-8">No menu items found</p>
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={openAddModal}
             className="px-12 py-6 bg-gradient-to-r from-orange-500 to-pink-500 text-black text-2xl font-bold rounded-full shadow-2xl hover:shadow-orange-500/60 transition"
           >
-            Add Your First Delicious Item
+            Add Your First Item
           </motion.button>
         </div>
       )}
 
-      {/* Add/Edit Modal */}
+      {/* Modern Add/Edit Modal */}
       {modalOpen && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.9, opacity: 0 }}
             className="bg-gradient-to-br from-[#111] to-[#1a1a1a] p-10 rounded-3xl shadow-2xl border border-gray-800 w-full max-w-4xl max-h-[95vh] overflow-y-auto"
           >
             <div className="flex justify-between items-center mb-8">
@@ -271,9 +290,8 @@ export default function Products() {
                   <label className="block text-gray-300 text-lg mb-3">Product Name *</label>
                   <input
                     type="text"
-                    name="name"
                     value={form.name}
-                    onChange={handleFormChange}
+                    onChange={(e) => setForm({ ...form, name: e.target.value })}
                     placeholder="e.g. Spicy Treat Shake"
                     className="w-full px-6 py-4 bg-black/50 border border-gray-700 rounded-2xl focus:border-orange-500 focus:ring-4 focus:ring-orange-500/20 outline-none text-white text-lg transition"
                   />
@@ -284,9 +302,8 @@ export default function Products() {
                     <label className="block text-gray-300 text-lg mb-3">Price (₹) *</label>
                     <input
                       type="number"
-                      name="price"
                       value={form.price}
-                      onChange={handleFormChange}
+                      onChange={(e) => setForm({ ...form, price: e.target.value })}
                       placeholder="323"
                       className="w-full px-6 py-4 bg-black/50 border border-gray-700 rounded-2xl focus:border-orange-500 focus:ring-4 focus:ring-orange-500/20 outline-none text-white text-lg transition"
                     />
@@ -296,23 +313,53 @@ export default function Products() {
                     <label className="block text-gray-300 text-lg mb-3">Category *</label>
                     <input
                       type="text"
-                      name="category"
                       value={form.category}
-                      onChange={handleFormChange}
+                      onChange={(e) => setForm({ ...form, category: e.target.value })}
                       placeholder="shake"
                       className="w-full px-6 py-4 bg-black/50 border border-gray-700 rounded-2xl focus:border-orange-500 focus:ring-4 focus:ring-orange-500/20 outline-none text-white text-lg transition"
                     />
                   </div>
                 </div>
 
+                {/* Image URL Option */}
                 <div>
                   <label className="block text-gray-300 text-lg mb-3">
-                    Product Image {editProduct ? "(Optional)" : "*"}
+                    Image URL {editProduct ? "(Optional)" : ""}
+                  </label>
+                  <input
+                    type="text"
+                    value={form.imgUrl}
+                    onChange={(e) => {
+                      setForm({ ...form, imgUrl: e.target.value });
+                      if (e.target.value) setPreview(e.target.value);
+                    }}
+                    placeholder="https://example.com/image.jpg"
+                    className="w-full px-6 py-4 bg-black/50 border border-gray-700 rounded-2xl focus:border-orange-500 focus:ring-4 focus:ring-orange-500/20 outline-none text-white text-lg transition"
+                  />
+                </div>
+
+                {/* OR Upload */}
+                <div className="text-center text-gray-400 my-4">OR</div>
+
+                <div>
+                  <label className="block text-gray-300 text-lg mb-3">
+                    Upload Image {editProduct ? "(Optional)" : "*"}
                   </label>
                   <label className="block w-full px-8 py-12 bg-black/30 border-2 border-dashed border-gray-600 rounded-3xl cursor-pointer hover:border-orange-500 transition text-center">
                     <FiImage className="mx-auto w-16 h-16 text-gray-500 mb-4" />
                     <p className="text-gray-400 text-lg">Drop image here or click to browse</p>
-                    <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                          setForm({ ...form, img: file });
+                          setPreview(URL.createObjectURL(file));
+                        }
+                      }}
+                      className="hidden"
+                    />
                   </label>
                 </div>
               </div>

@@ -22,7 +22,7 @@ API.interceptors.request.use(
     // Let browser set it with correct boundary
     if (config.data instanceof FormData) {
       delete config.headers["Content-Type"];
-    } else {
+    } else if (config.data) {
       config.headers["Content-Type"] = "application/json";
     }
 
@@ -40,6 +40,9 @@ API.interceptors.response.use(
     return response.data;
   },
   (error) => {
+    // Log the failing URL to help debug "Route not found" errors
+    console.error("API Request Failed at:", error?.config?.baseURL + error?.config?.url);
+
     const message =
       error?.response?.data?.message ||
       error?.response?.data?.error ||
@@ -80,7 +83,7 @@ export const fetchSettings = () => API.get("/settings");
 
 export const saveSettings = (data) => {
   // data can be plain object or FormData (for logo upload)
-  return API.put("/settings", data);
+  return API.post("/settings", data);
 };
 
 /* =========================
@@ -114,6 +117,15 @@ export const updateProduct = (id, data) => {
 };
 
 export const deleteProduct = (id) => API.delete(`/products/${id}`);
+/* ================= ADMIN USERS APIs ================= */
+
+export const fetchAdminUsers = () => API.get("/admin-users");
+export const addAdminUser = (data) => API.post("/admin-users", data);
+export const updateAdminUser = (id, data) =>
+  API.put(`/admin-users/${id}`, data);
+export const deleteAdminUserApi = (id) =>
+  API.delete(`/admin-users/${id}`);
+
 
 /* =========================
    EXPORT DEFAULT

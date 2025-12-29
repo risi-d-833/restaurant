@@ -8,7 +8,7 @@ import AdminLayout from "../components/AdminLayout";
 import Products from "../pages/Products";
 import Orders from "../pages/Orders";
 import Settings from "../pages/Settings";
-import Users from "../pages/Users";
+import Users from "../pages/AdminUsers";
 
 // Fixed: Import Dashboard properly (assuming your page file is named Overview.jsx)
 import Dashboard from "../pages/Dashboard"; // ← Yeh sahi import hai
