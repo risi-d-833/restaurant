@@ -1,76 +1,74 @@
-// src/admin/components/Topbar.jsx (Real-time Admin Name Display)
 import React, { useState, useEffect } from "react";
-import { FiBell, FiLogOut, FiChevronDown } from "react-icons/fi";
-import { FiMenu } from "react-icons/fi";
+import { FiBell, FiLogOut, FiChevronDown, FiMenu } from "react-icons/fi";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 
 export default function Topbar({ onMenuToggle, user }) {
   const navigate = useNavigate();
+
   const [adminName, setAdminName] = useState("Admin");
   const [adminEmail, setAdminEmail] = useState("");
   const [showProfile, setShowProfile] = useState(false);
 
+  /* ==============================
+     LOAD ADMIN DATA (FIXED)
+  ============================== */
   useEffect(() => {
-    // Update from props if provided
+    // 1️⃣ If user is passed via props
     if (user) {
-      setAdminName(user.name || user.userName || "Admin");
-      setAdminEmail(user.email || user.userEmail || "");
+      setAdminName(user.name || "Admin");
+      setAdminEmail(user.email || "");
       return;
     }
 
-    // Fallback to localStorage
-    const updateFromStorage = () => {
-      const name =
-        localStorage.getItem("adminName") ||
-        localStorage.getItem("userName") ||
-        sessionStorage.getItem("userName") ||
-        "Admin";
-      const email =
-        localStorage.getItem("adminEmail") ||
-        localStorage.getItem("userEmail") ||
-        sessionStorage.getItem("userEmail") ||
-        "";
-      setAdminName(name);
-      setAdminEmail(email);
-    };
+    // 2️⃣ Read from localStorage.user (MAIN FIX)
+    const loadUser = () => {
+      try {
+        const storedUser = JSON.parse(localStorage.getItem("user"));
 
-    updateFromStorage();
+        if (storedUser) {
+          setAdminName(storedUser.name || "Admin");
+          setAdminEmail(storedUser.email || "");
+          return;
+        }
 
-    // Listen for real-time storage changes
-    const handleStorageChange = (e) => {
-      if (
-        e.key === "adminName" ||
-        e.key === "userName" ||
-        e.key === "adminEmail" ||
-        e.key === "userEmail"
-      ) {
-        updateFromStorage();
+        // 3️⃣ Fallback (old keys support)
+        setAdminName(
+          localStorage.getItem("adminName") ||
+          localStorage.getItem("userName") ||
+          "Admin"
+        );
+        setAdminEmail(
+          localStorage.getItem("adminEmail") ||
+          localStorage.getItem("userEmail") ||
+          ""
+        );
+      } catch (err) {
+        console.error("Failed to load admin user");
       }
     };
 
-    window.addEventListener("storage", handleStorageChange);
+    loadUser();
 
-    // Also listen for custom events
-    const handleCustomUpdate = () => {
-      updateFromStorage();
+    // Real-time updates
+    const handleStorageChange = (e) => {
+      if (e.key === "user") loadUser();
     };
-    window.addEventListener("userUpdated", handleCustomUpdate);
+
+    window.addEventListener("storage", handleStorageChange);
+    window.addEventListener("userUpdated", loadUser);
 
     return () => {
       window.removeEventListener("storage", handleStorageChange);
-      window.removeEventListener("userUpdated", handleCustomUpdate);
+      window.removeEventListener("userUpdated", loadUser);
     };
   }, [user]);
 
+  /* ==============================
+     LOGOUT
+  ============================== */
   const handleLogout = () => {
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("userRole");
-    localStorage.removeItem("adminName");
-    localStorage.removeItem("adminEmail");
-    localStorage.removeItem("token");
-    localStorage.removeItem("userName");
-    localStorage.removeItem("userEmail");
+    localStorage.clear();
     sessionStorage.clear();
     navigate("/");
   };
@@ -81,83 +79,75 @@ export default function Topbar({ onMenuToggle, user }) {
       .split(" ")
       .map((n) => n[0])
       .join("")
-      .toUpperCase()
-      .slice(0, 2);
+      .slice(0, 2)
+      .toUpperCase();
   };
 
   return (
     <motion.header
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="flex items-center justify-between px-4 md:px-6 lg:px-8 py-4 border-b border-gray-800 bg-black/50 backdrop-blur-md sticky top-0 z-40"
+      transition={{ duration: 0.4 }}
+      className="flex items-center justify-between px-4 md:px-6 py-4 border-b border-gray-800 bg-black/60 backdrop-blur sticky top-0 z-40"
     >
-      {/* Left: Menu Button & Title */}
-      <div className="flex items-center gap-3 md:gap-4">
-        {/* Mobile Menu Button */}
+      {/* LEFT */}
+      <div className="flex items-center gap-3">
         <button
           onClick={onMenuToggle}
-          className="lg:hidden p-2 rounded-lg hover:bg-gray-900 transition-all"
-          aria-label="Toggle menu"
+          className="lg:hidden p-2 rounded-lg hover:bg-gray-900 transition"
         >
           <FiMenu className="w-6 h-6 text-orange-400" />
         </button>
 
-        <h1 className="text-xl md:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-orange-400 to-pink-500 bg-clip-text text-transparent">
+        <h1 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-orange-400 to-pink-500 bg-clip-text text-transparent">
           Admin
         </h1>
-        <span className="hidden sm:block text-gray-500 text-xs md:text-sm">
-          Control Panel
-        </span>
+        <span className="hidden sm:block text-gray-500 text-sm">dashboard</span>
       </div>
 
-      {/* Right: Actions */}
-      <div className="flex items-center gap-2 md:gap-4">
-        {/* Notification Bell */}
-        <button
-          className="relative p-2 md:p-3 rounded-full hover:bg-orange-500/10 transition-all hover:scale-110"
-          aria-label="Notifications"
-        >
-          <FiBell className="w-5 h-5 md:w-6 md:h-6 text-gray-300 hover:text-orange-400 transition" />
-          <span className="absolute top-1 right-1 w-2.5 h-2.5 md:w-3 md:h-3 bg-red-500 rounded-full animate-pulse" />
+      {/* RIGHT */}
+      <div className="flex items-center gap-3">
+        {/* Notifications */}
+        <button className="relative p-3 rounded-full hover:bg-orange-500/10 transition">
+          <FiBell className="w-6 h-6 text-gray-300 hover:text-orange-400" />
+          <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse" />
         </button>
 
-        {/* User Profile Dropdown */}
+        {/* Profile */}
         <div className="relative">
           <button
             onClick={() => setShowProfile(!showProfile)}
-            className="flex items-center gap-2 md:gap-3 px-2 md:px-4 py-2 md:py-3 rounded-lg md:rounded-full hover:bg-gray-900/50 transition-all group"
+            className="flex items-center gap-3 px-4 py-2 rounded-full hover:bg-gray-900 transition"
           >
-            <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gradient-to-br from-orange-400 to-pink-500 flex items-center justify-center text-black font-bold shadow-lg text-xs md:text-sm">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-pink-500 flex items-center justify-center text-black font-bold">
               {getInitials(adminName)}
             </div>
+
             <div className="hidden md:flex flex-col items-start">
-              <span className="text-xs md:text-sm font-semibold text-white leading-tight">
+              <span className="text-sm font-semibold text-white">
                 {adminName}
               </span>
               {adminEmail && (
-                <span className="text-xs text-gray-400 leading-tight truncate max-w-[150px]">
+                <span className="text-xs text-gray-400 truncate max-w-[160px]">
                   {adminEmail}
                 </span>
               )}
             </div>
-            <FiChevronDown className="w-4 h-4 text-gray-400 group-hover:text-orange-400 transition hidden md:block" />
+
+            <FiChevronDown className="hidden md:block text-gray-400" />
           </button>
 
-          {/* Profile Dropdown Menu */}
+          {/* Dropdown */}
           {showProfile && (
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="absolute right-0 mt-2 w-56 bg-[#111] border border-gray-800 rounded-xl shadow-2xl overflow-hidden z-50"
+              className="absolute right-0 mt-2 w-56 bg-[#111] border border-gray-800 rounded-xl shadow-xl z-50"
             >
-              <div className="p-4 border-b border-gray-800 bg-black/50">
+              <div className="p-4 border-b border-gray-800">
                 <p className="text-sm font-semibold text-white">{adminName}</p>
                 {adminEmail && (
-                  <p className="text-xs text-gray-400 mt-1 truncate">
-                    {adminEmail}
-                  </p>
+                  <p className="text-xs text-gray-400 truncate">{adminEmail}</p>
                 )}
               </div>
 
@@ -167,32 +157,21 @@ export default function Topbar({ onMenuToggle, user }) {
                     setShowProfile(false);
                     navigate("/admin/settings");
                   }}
-                  className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-orange-500/20 hover:text-orange-400 rounded-lg transition"
+                  className="w-full px-4 py-2 text-left text-sm text-gray-300 hover:bg-orange-500/20 hover:text-orange-400 rounded-lg"
                 >
                   ⚙️ Settings
                 </button>
+
                 <button
-                  onClick={() => {
-                    setShowProfile(false);
-                    handleLogout();
-                  }}
-                  className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-red-500/20 rounded-lg transition flex items-center gap-2"
+                  onClick={handleLogout}
+                  className="w-full px-4 py-2 text-left text-sm text-red-400 hover:bg-red-500/20 rounded-lg flex items-center gap-2"
                 >
-                  <FiLogOut className="w-4 h-4" />
+                  <FiLogOut />
                   Logout
                 </button>
               </div>
             </motion.div>
           )}
-
-          {/* Mobile Logout Button */}
-          <button
-            onClick={handleLogout}
-            className="flex md:hidden items-center gap-2 px-3 py-2 rounded-lg bg-gradient-to-r from-orange-500 to-pink-500 text-white text-sm font-semibold hover:shadow-xl hover:shadow-orange-500/30 transition-all hover:scale-105"
-            aria-label="Logout"
-          >
-            <FiLogOut className="w-4 h-4" />
-          </button>
         </div>
       </div>
     </motion.header>

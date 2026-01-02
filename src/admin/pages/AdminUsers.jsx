@@ -1,4 +1,3 @@
-// src/components/admin/AdminUsers.jsx
 import React, { useEffect, useState } from "react";
 import {
   FiSearch,
@@ -17,7 +16,6 @@ import {
 } from "../../services/api";
 
 export default function AdminUsers() {
-  /* ================= STATE ================= */
   const [users, setUsers] = useState([]);
   const [search, setSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
@@ -35,17 +33,10 @@ export default function AdminUsers() {
 
   /* ================= LOAD USERS ================= */
   useEffect(() => {
-    const loadUsers = async () => {
-      try {
-        const data = await fetchAdminUsers();
-        setUsers(Array.isArray(data) ? data : []);
-      } catch (err) {
-        setError(err.message || "Failed to load users");
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadUsers();
+    fetchAdminUsers()
+      .then((data) => setUsers(Array.isArray(data) ? data : []))
+      .catch((e) => setError(e.message))
+      .finally(() => setLoading(false));
   }, []);
 
   /* ================= FILTER ================= */
@@ -55,7 +46,7 @@ export default function AdminUsers() {
       u.email.toLowerCase().includes(search.toLowerCase())
   );
 
-  /* ================= MODAL HANDLERS ================= */
+  /* ================= MODAL ================= */
   const openAdd = () => {
     setEditUser(null);
     setForm({ name: "", email: "", role: "Staff", status: "Active" });
@@ -63,29 +54,22 @@ export default function AdminUsers() {
     setModalOpen(true);
   };
 
-  const openEdit = (user) => {
-    setEditUser(user);
-    setForm({
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      status: user.status,
-    });
+  const openEdit = (u) => {
+    setEditUser(u);
+    setForm(u);
     setError("");
     setModalOpen(true);
   };
 
-  /* ================= SUBMIT ================= */
+  /* ================= SAVE ================= */
   const submit = async () => {
-    if (!form.name.trim() || !form.email.trim()) {
-      setError("Name and Email are required");
+    if (!form.name || !form.email) {
+      setError("Name & Email are required");
       return;
     }
 
     try {
       setSaving(true);
-      setError("");
-
       if (editUser) {
         const updated = await updateAdminUser(editUser._id, form);
         setUsers(users.map((u) => (u._id === updated._id ? updated : u)));
@@ -93,10 +77,9 @@ export default function AdminUsers() {
         const created = await addAdminUser(form);
         setUsers([created, ...users]);
       }
-
       setModalOpen(false);
-    } catch (err) {
-      setError(err.message || "Failed to save user");
+    } catch (e) {
+      setError(e.message || "Save failed");
     } finally {
       setSaving(false);
     }
@@ -105,85 +88,101 @@ export default function AdminUsers() {
   /* ================= DELETE ================= */
   const remove = async (id) => {
     if (!window.confirm("Delete this user permanently?")) return;
-
-    try {
-      await deleteAdminUserApi(id);
-      setUsers(users.filter((u) => u._id !== id));
-    } catch (err) {
-      alert(err.message || "Delete failed");
-    }
+    await deleteAdminUserApi(id);
+    setUsers(users.filter((u) => u._id !== id));
   };
 
-  /* ================= UI ================= */
   return (
-    <div className="space-y-8">
+    <div className="space-y-10">
       {/* HEADER */}
-      <div className="flex flex-col sm:flex-row justify-between gap-4">
+      <div className="flex flex-col md:flex-row justify-between gap-6">
         <div>
-          <h2 className="text-4xl font-bold text-white">Admin Users</h2>
-          <p className="text-gray-400">Manage staff roles & access</p>
+          <h1 className="text-4xl font-bold tracking-tight">Admin Users</h1>
+          <p className="text-gray-400 mt-1">
+            Manage staff access & permissions
+          </p>
         </div>
 
         <button
           onClick={openAdd}
-          className="px-6 py-3 bg-gradient-to-r from-orange-500 to-pink-500
-          rounded-full text-black font-semibold flex items-center gap-2"
+          className="flex items-center gap-2 px-6 py-3 rounded-full
+          bg-orange-500 hover:bg-orange-600 text-black font-semibold transition"
         >
           <FiUserPlus /> Add User
         </button>
       </div>
 
       {/* SEARCH */}
-      <div className="relative w-64">
+      <div className="relative max-w-sm">
         <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
         <input
-          placeholder="Search users..."
+          placeholder="Search by name or email..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="pl-12 pr-4 py-3 bg-[#111] border border-gray-800
-          rounded-xl w-full focus:border-orange-500 outline-none"
+          className="w-full pl-11 pr-4 py-3 rounded-xl bg-black/40
+          border border-white/10 focus:border-orange-500 outline-none"
         />
       </div>
 
-      {/* LIST */}
-      <div className="bg-[#111] rounded-2xl border border-gray-800 overflow-hidden">
+      {/* TABLE */}
+      <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl overflow-hidden shadow-2xl">
         {loading ? (
-          <div className="p-10 text-center text-gray-400">Loading users...</div>
+          <div className="p-10 text-center text-gray-400">
+            Loading users...
+          </div>
         ) : filteredUsers.length === 0 ? (
-          <div className="p-10 text-center text-gray-400">No users found</div>
+          <div className="p-10 text-center text-gray-400">
+            No users found
+          </div>
         ) : (
           filteredUsers.map((u) => (
             <div
               key={u._id}
-              className="flex justify-between items-center px-6 py-4
-              border-b border-gray-800 hover:bg-white/5 transition"
+              className="grid grid-cols-[1.5fr_1fr_1fr_120px]
+              gap-4 items-center px-6 py-5 border-b border-white/10
+              hover:bg-white/5 transition"
             >
+              {/* USER */}
               <div>
-                <p className="font-semibold text-white">{u.name}</p>
-                <p className="text-gray-400 text-sm">{u.email}</p>
-                <span className="inline-flex items-center gap-1 mt-1
-                  text-xs px-3 py-1 rounded-full bg-orange-500/10 text-orange-400">
-                  <FiShield size={12} /> {u.role}
-                </span>
+                <p className="font-semibold">{u.name}</p>
+                <p className="text-sm text-gray-400">{u.email}</p>
               </div>
 
-              <div className="flex items-center gap-4">
-                <span
-                  className={`text-sm ${
-                    u.status === "Active"
-                      ? "text-green-400"
-                      : "text-gray-500"
-                  }`}
-                >
-                  ● {u.status}
-                </span>
+              {/* ROLE */}
+              <span
+                className={`inline-flex items-center gap-1 px-3 py-1 text-xs
+                rounded-full w-fit ${
+                  u.role === "Admin"
+                    ? "bg-red-500/10 text-red-400"
+                    : u.role === "Manager"
+                    ? "bg-purple-500/10 text-purple-400"
+                    : "bg-orange-500/10 text-orange-400"
+                }`}
+              >
+                <FiShield size={12} /> {u.role}
+              </span>
 
-                <button onClick={() => openEdit(u)}>
-                  <FiEdit className="text-orange-400 hover:scale-110 transition" />
-                </button>
-                <button onClick={() => remove(u._id)}>
-                  <FiTrash2 className="text-red-400 hover:scale-110 transition" />
-                </button>
+              {/* STATUS */}
+              <span
+                className={`text-sm font-medium ${
+                  u.status === "Active"
+                    ? "text-green-400"
+                    : "text-gray-500"
+                }`}
+              >
+                ● {u.status}
+              </span>
+
+              {/* ACTIONS */}
+              <div className="flex items-center gap-4">
+                <FiEdit
+                  onClick={() => openEdit(u)}
+                  className="cursor-pointer text-orange-400 hover:scale-110 transition"
+                />
+                <FiTrash2
+                  onClick={() => remove(u._id)}
+                  className="cursor-pointer text-red-400 hover:scale-110 transition"
+                />
               </div>
             </div>
           ))
@@ -197,79 +196,60 @@ export default function AdminUsers() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/70 backdrop-blur
-            flex items-center justify-center z-50"
+            className="fixed inset-0 z-50 bg-black/70 backdrop-blur
+            flex items-center justify-center"
           >
             <motion.div
-              initial={{ scale: 0.9 }}
-              animate={{ scale: 1 }}
-              className="bg-[#111] p-8 rounded-2xl w-full max-w-md
-              border border-gray-800 shadow-2xl"
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              className="w-full max-w-md bg-[#0f0f0f]
+              border border-white/10 rounded-3xl p-8 shadow-2xl"
             >
               <div className="flex justify-between mb-6">
                 <h3 className="text-2xl font-bold">
                   {editUser ? "Edit User" : "Add User"}
                 </h3>
                 <FiX
-                  className="cursor-pointer"
+                  className="cursor-pointer text-gray-400 hover:text-white"
                   onClick={() => setModalOpen(false)}
                 />
               </div>
 
               {error && (
-                <div className="mb-4 text-red-400 bg-red-500/10
-                border border-red-500/30 p-3 rounded-lg text-sm">
+                <div className="mb-4 p-3 rounded-xl text-sm
+                bg-red-500/10 text-red-400 border border-red-500/30">
                   {error}
                 </div>
               )}
 
-              <input
+              <Input
                 placeholder="Full Name"
-                className="input mb-3"
                 value={form.name}
-                onChange={(e) =>
-                  setForm({ ...form, name: e.target.value })
-                }
+                onChange={(v) => setForm({ ...form, name: v })}
               />
-
-              <input
+              <Input
                 placeholder="Email Address"
-                className="input mb-3"
                 value={form.email}
-                onChange={(e) =>
-                  setForm({ ...form, email: e.target.value })
-                }
+                onChange={(v) => setForm({ ...form, email: v })}
               />
 
-              <select
-                className="input mb-3"
+              <Select
                 value={form.role}
-                onChange={(e) =>
-                  setForm({ ...form, role: e.target.value })
-                }
-              >
-                <option value="Admin">Admin</option>
-                <option value="Manager">Manager</option>
-                <option value="Staff">Staff</option>
-              </select>
-
-              <select
-                className="input"
+                onChange={(v) => setForm({ ...form, role: v })}
+                options={["Admin", "Manager", "Staff"]}
+              />
+              <Select
                 value={form.status}
-                onChange={(e) =>
-                  setForm({ ...form, status: e.target.value })
-                }
-              >
-                <option value="Active">Active</option>
-                <option value="Inactive">Inactive</option>
-              </select>
+                onChange={(v) => setForm({ ...form, status: v })}
+                options={["Active", "Inactive"]}
+              />
 
               <button
                 onClick={submit}
                 disabled={saving}
-                className="mt-6 w-full py-3 rounded-full font-semibold
-                bg-gradient-to-r from-orange-500 to-pink-500 text-black
-                hover:shadow-xl transition disabled:opacity-70"
+                className="mt-6 w-full py-3 rounded-full
+                bg-orange-500 hover:bg-orange-600 text-black
+                font-semibold transition"
               >
                 {saving ? "Saving..." : "Save User"}
               </button>
@@ -280,3 +260,30 @@ export default function AdminUsers() {
     </div>
   );
 }
+
+/* ================= UI HELPERS ================= */
+
+const Input = ({ value, onChange, placeholder }) => (
+  <input
+    value={value}
+    placeholder={placeholder}
+    onChange={(e) => onChange(e.target.value)}
+    className="w-full mb-3 px-4 py-3 rounded-xl
+    bg-black/40 border border-white/10
+    focus:border-orange-500 outline-none"
+  />
+);
+
+const Select = ({ value, onChange, options }) => (
+  <select
+    value={value}
+    onChange={(e) => onChange(e.target.value)}
+    className="w-full mb-3 px-4 py-3 rounded-xl
+    bg-black/40 border border-white/10
+    focus:border-orange-500 outline-none"
+  >
+    {options.map((o) => (
+      <option key={o}>{o}</option>
+    ))}
+  </select>
+);

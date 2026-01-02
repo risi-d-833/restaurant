@@ -31,7 +31,7 @@ export default function Sidebar() {
         <h1 className="text-2xl xl:text-3xl font-bold bg-gradient-to-r from-orange-400 to-pink-500 bg-clip-text text-transparent truncate">
           Village CHEF
         </h1>
-        <p className="text-gray-500 text-xs xl:text-sm mt-2">Admin Dashboard</p>
+        {/* <p className="text-gray-500 text-xs xl:text-sm mt-2">Admin Dashboard</p> */}
       </div>
 
       {/* Navigation */}
