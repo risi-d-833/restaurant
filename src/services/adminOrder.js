@@ -3,7 +3,7 @@ import axios from "axios";
 /* ================= AXIOS INSTANCE ================= */
 
 const API = axios.create({
-  baseURL: "http://localhost:5000/api/admin/orders",
+  baseURL: "https://restorent-backend.onrender.com/api/admin/orders",
   headers: {
     "Content-Type": "application/json",
   },
